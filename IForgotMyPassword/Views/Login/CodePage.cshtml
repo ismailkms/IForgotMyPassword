@@ -1,0 +1,62 @@
+﻿@model int
+@{
+    Layout = "_Layout";
+}
+
+<div class="form-group m-3">
+    <p>Lütfen eposta adresinize gönderilen kodu giriniz.</p>
+</div>
+<div class="form-group m-3">
+    <input type="text" class="form-control" name="code" id="code" placeholder="Code" required>
+</div>
+<div class="form-group m-3">
+    <div class="sayac"></div>
+</div>
+<button class="btn btn-primary m-3" id="sendCodeButton">Gönder</button>
+
+@section Scripts {
+    <script>
+
+        $(document).ready(function () {
+            var saniye = 60;
+            var sayacYeri = $("div.sayac");
+            let intervalId;
+
+            $.sayimiBaslat = function () {
+                if (saniye > 1) {
+                    saniye--;
+                    sayacYeri.text(saniye);
+                } else {
+                    $("div.sayac").empty();
+                    $("div.sayac").append("<p style='color:red'>Süreniz doldu lütfen yeni bir kod isteyiniz.</p>");
+                    clearInterval(intervalId);//Zamanlayıcıyı durdurmadığımız sürece arkaplanda çalışmaya devam edecektir bu yüzden ihtiyaç duyduğumuzda clearInterval methoduna intervalId değerini vererek interval işlemini durduruyoruz.
+                }
+            }
+
+            sayacYeri.text(saniye);
+            intervalId = setInterval("$.sayimiBaslat()", 1000);//setinterval methodunu belirli periyoduk aralıklarla çalıştırmak istediğimiz kod bloklarını çalıştırmak için kullanabiliriz. Burada saniyede bir sayimiBaslat() methodunu tetikliyoruz
+
+            alertify.notify("Mail adresine kod gönderildi", 'success', 3);
+
+            $("#sendCodeButton").click(function () {
+                var code = $("#code").val();
+                $.ajax({
+                    url: "/Login/CodeControl",
+                    dataType: "json",
+                    data: {
+                        id: @(Model),
+                        code: code
+                    },
+                    success: function (data) {
+                        if (data != null) {
+                            alertify.notify(data, 'success', 3);
+                        }
+                        else {
+                            alertify.notify('Hatalı ya da eksik kod girdiniz', 'error', 3);
+                        }
+                    }
+                });
+            })
+        });
+    </script>
+}
