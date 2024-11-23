@@ -1,6 +1,7 @@
 ﻿using IForgotMyPassword.Abstraction;
 using IForgotMyPassword.Concrete;
 using IForgotMyPassword.Entities;
+using IForgotMyPassword.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 
@@ -17,23 +18,35 @@ namespace IForgotMyPassword.Controllers
             _userService = userService;
         }
 
-        public IActionResult Index(bool control = true)
+        public IActionResult Index(string returnUrl)
         {
-            if (!control)
-                ViewBag.Control = "Kullanıcı adı veya şifreniz yanlış.";
-            return View();
+            //AccessDenied yani yetkisiz erişim yapıldığında erişmeye çalıştığın sayfanın url'i tutulur.(https://localhost:7185/Login/Index?ReturnUrl=%2FHome%2FMemberPage şeklinde görebilirsin.) Burada kullanıcı giriş yaptığında o url'e yönlensin diye o url'i çekiyoruz.
+            return View(new UserLoginModel() { ReturnUrl = returnUrl });
         }
 
-        public async Task<IActionResult> Login(string userName, string password)
+        [HttpPost]
+        public async Task<IActionResult> Index(UserLoginModel userLoginModel)
         {
-            bool result = _loginService.ControlUsernameAndPassword(userName, password);
-            if (result)
+            if (ModelState.IsValid)
             {
-                await _loginService.AddUserToClaimAsync(userName, password);
-                return RedirectToAction("Index", "Home");
-            }
+                bool result = _loginService.ControlUsernameAndPassword(userLoginModel.Username, userLoginModel.Password);
+                if (result)
+                {
+                    await _loginService.AddUserToClaimAsync(userLoginModel.Username, userLoginModel.Password);
+                    if (userLoginModel.ReturnUrl != null)
+                    {
+                        return Redirect(userLoginModel.ReturnUrl);
+                        //Eğer ReturnUrl doluysa ona yönlendir yok değilse normal bir şekilde devam et diyoruz.
+                    }
+                    else
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+                }
 
-            return RedirectToAction("Index", "Login", new { control = false });
+                ModelState.AddModelError("", "Kullanıcı adı ya da şifre yanlış girildi");
+            }
+            return View();
         }
 
         public IActionResult EmailForm()
@@ -64,7 +77,7 @@ namespace IForgotMyPassword.Controllers
             if (user != null)
             {
                 string cacheCode = _loginService.GetCodeByEmail(user.Email);
-                if(cacheCode == code)
+                if (cacheCode == code)
                     return Json($"Şifre güncelleme ekranına yönlendirildi ve şifre güncelleştirildi");
             }
 

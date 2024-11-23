@@ -11,7 +11,7 @@ namespace IForgotMyPassword.Concrete
             return new()
             {
                 new() { Id = 1, UserName = "user1", Password = "123", Email = "user1@gmail.com", Role = "Admin" },
-                new() { Id = 2, UserName = "user2", Password = "123", Email = "user2@gmail.com", Role = null },
+                new() { Id = 2, UserName = "user2", Password = "123", Email = "user2@gmail.com", Role = "Member" },
                 new() { Id = 3, UserName = "user3", Password = "123", Email = "user3@gmail.com", Role = "Admin" },
                 new() { Id = 4, UserName = "user4", Password = "123", Email = "user4@gmail.com", Role = null }
             };

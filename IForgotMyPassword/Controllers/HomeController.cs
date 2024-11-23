@@ -5,10 +5,17 @@ using System.Diagnostics;
 
 namespace IForgotMyPassword.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    
     public class HomeController : Controller
     {
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Member")]
+        public IActionResult MemberPage()
         {
             return View();
         }
